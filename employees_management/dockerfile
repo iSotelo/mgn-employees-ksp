@@ -1,0 +1,8 @@
+from node:16.13.0
+workdir /app
+copy ./employees_management/package*.json /app
+run npm install
+copy ./employees_management/ /app
+run npm run build
+expose 3000
+cmd ["npm", "run", "start"]

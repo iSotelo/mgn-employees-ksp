@@ -1,0 +1,52 @@
+version: '3.7'
+
+networks:
+  app-net:
+
+services:
+  employees_service:
+    build:
+      context: .
+      dockerfile: ./employees_service/dockerfile
+    image: employee-service
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - ./employees_service/app:/app
+    env_file:
+      - ./employees_service/.env
+    ports:
+      - 8000:8000
+    depends_on:
+      - db
+    networks:
+      - app-net
+
+  employees_management:
+    build:
+      context: .
+      dockerfile: ./employees_management/dockerfile
+    image: employees_management
+    command: npm start
+    volumes:
+      - ./employees_management:/app
+    ports:
+      - 3000:3000
+    depends_on:
+      - employees_service
+    networks:
+      - app-net
+
+  db:
+    image: postgres:11.6
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB} #Type database's name
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+      - ./db-data:/var/lib/postgresql/data
+    env_file:
+      - ./employees_service/.env
+    networks:
+      - app-net
+    ports:
+      - "5432:5432"
